@@ -1,30 +1,34 @@
 import os
 import discord
 import random
+from datetime import datetime
 from dotenv import load_dotenv
 from discord.ext import commands
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-client = discord.Client()
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix="!")
 
-@client.event
+@bot.event
 async def on_ready():
-    print(f'{client.user} has connected to {client.guilds}!')
-
     
+    print(f'{bot.user} has connected to {bot.guilds[0].name}!')
+    channel = bot.get_channel(910630657716260877)
+    time = datetime.now().strftime('%H:%M')
+    print(time)
+    await channel.send('stinki started at {time} CST')
+    #channel = discord.TextChannel
         
-@bot.command(name='whostinki') 
-async def on_message(message):
-    if message.author == client.user:
-        return
+@bot.command()
+async def whostinki(ctx):
+    msg = "ur stinki"
+    print("here")
+    await ctx.send(msg)
     
-    print(discord.User)
+@bot.command()
+async def test(ctx):
+    print(ctx.guild.users)
+    #await ctx.send('test')
 
-    msg = "bingbong"
-    await message.channel.send(msg)
-    
-
-client.run(TOKEN)
+bot.run(TOKEN)
