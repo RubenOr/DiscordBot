@@ -8,7 +8,9 @@ from discord.ext import commands
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-bot = commands.Bot(command_prefix="!")
+intents = discord.Intents.default()
+intents.members=True
+bot = commands.Bot(command_prefix="!",intents=intents)
 
 @bot.event
 async def on_ready():
@@ -17,13 +19,16 @@ async def on_ready():
     channel = bot.get_channel(910630657716260877)
     time = datetime.now().strftime('%H:%M')
     print(time)
-    await channel.send('stinki started at {time} CST')
+    init = 'stinki started at %sCST' % time 
+    await channel.send(init)
     #channel = discord.TextChannel
         
 @bot.command()
 async def whostinki(ctx):
+    for member in ctx.guild.members:
+        print('%s' % member.name)
+    #print(members)
     msg = "ur stinki"
-    print("here")
     await ctx.send(msg)
     
 @bot.command()
