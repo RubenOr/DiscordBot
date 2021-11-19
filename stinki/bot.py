@@ -12,17 +12,9 @@ bot = commands.Bot(command_prefix='!')
 
 @client.event
 async def on_ready():
-    print(f'{client.user} has connected to this server!')
-    
+    print(f'{client.user} has connected to {client.guilds}!')
 
-@bot.command(name='test')
-async def on_message(message):
-    if message.author == client.user:
-        return
     
-    if message.content == "!test":
-        msg = "bingbong"
-        await message.channel.send(msg)
         
 @bot.command(name='whostinki') 
 async def on_message(message):
