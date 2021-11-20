@@ -25,17 +25,18 @@ async def on_ready():
         
 @bot.command()
 async def whostinki(ctx):
+
+    def ran_num():
+        return random.randint(0, ctx.guild.member_count-1)
+
     members = ctx.guild.members
-    for member in members:
-        print('%s' % member.name)
-    
-    ran = random.randint(0, ctx.guild.member_count-1)
-    #print(members)
-    stinki = members[ran]
-    
+
+    stinki = members[ran_num()]
+    while stinki.bot:
+        stinki = members[ran_num()]
+        print(stinki.name)
+
     msg = f'{stinki.mention} is stinki'
     await ctx.send(msg)
-
-
 
 bot.run(TOKEN)
