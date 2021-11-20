@@ -10,12 +10,13 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 intents = discord.Intents.default()
 intents.members=True
+intents.presences=True
 bot = commands.Bot(command_prefix="!",intents=intents)
 
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to {bot.guilds[0].name}!')
-    channel = bot.get_channel(910630657716260877)
+    channel = bot.get_channel(910997848986882129)
 
     time = datetime.now().strftime('%H:%M')
     init = 'stinki started at %sCST' % time
@@ -32,11 +33,18 @@ async def whostinki(ctx):
     members = ctx.guild.members
 
     stinki = members[ran_num()]
-    while stinki.bot:
+    print(f'{stinki.name} is {stinki.raw_status}')
+    count=0
+    while (stinki.bot or stinki.raw_status == 'offline') and count < 20:
         stinki = members[ran_num()]
-        print(stinki.name)
+        count+=1
+        #print(stinki.name)
 
-    msg = f'{stinki.mention} is stinki'
+    if count == 20:
+        msg = 'No one is stinki!'    
+    else: 
+        msg = f'{stinki.mention} is stinki'
+
     await ctx.send(msg)
 
 bot.run(TOKEN)
