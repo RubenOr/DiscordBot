@@ -1,6 +1,7 @@
 import os
 import discord
 import random
+import pytz
 from datetime import datetime, time
 from discord import channel
 from dotenv import load_dotenv
@@ -13,6 +14,7 @@ intents = discord.Intents.default()
 # see guild members and their status
 intents.members = True
 intents.presences = True
+
 bot = commands.Bot(command_prefix="!",intents=intents)
 txt_channel = bot.get_channel(910997848986882129)
 
@@ -20,7 +22,6 @@ txt_channel = bot.get_channel(910997848986882129)
 async def on_ready():
     # send message on channel join
     print(f'{bot.user} has connected to {bot.guilds[0].name}!')
-    
 
     time = datetime.now().strftime('%H:%M')
     init = f'stinki started at {time}'
@@ -81,5 +82,18 @@ async def whostinki(ctx):
 async def wakeup(ctx, member: discord.Member):
     
     return None
+
+@bot.command()
+async def time(ctx):
+    # show everyones current times in different timezones
+
+    pst = pytz.timezone('America/Los_Angeles')
+    cst = pytz.timezone('America/Chicago')
+    eastern = pytz.timezone('America/New_York')
+    chile_summer = pytz.timezone('America/Santiago')
+
+
+
+    await ctx.send('times')
 
 bot.run(TOKEN)
