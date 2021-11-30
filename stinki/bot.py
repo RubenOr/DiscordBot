@@ -9,21 +9,20 @@ from discord.ext import commands
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-global txt_channel
 intents = discord.Intents.default()
 # see guild members and their status
 intents.members = True
 intents.presences = True
 
 bot = commands.Bot(command_prefix="!",intents=intents)
-txt_channel = bot.get_channel(910997848986882129)
 
 @bot.event
 async def on_ready():
+    txt_channel = bot.get_channel(910997848986882129)
     # send message on channel join
     print(f'{bot.user} has connected to {bot.guilds[0].name}!')
 
-    time = datetime.now().strftime('%H:%M')
+    time = datetime.now().strftime('%I:%M')
     init = f'stinki started at {time}'
 
     await txt_channel.send(init)
@@ -37,7 +36,6 @@ async def quit(ctx):
 async def connect(ctx):
     # try to assign channel to send messages to
     
-    print(txt_channel.id)
 
     print(ctx.channel.id)
     return None
@@ -79,21 +77,27 @@ async def whostinki(ctx):
     await ctx.send(msg)
 
 @bot.command()
-async def wakeup(ctx, member: discord.Member):
-    
-    return None
-
-@bot.command()
 async def time(ctx):
     # show everyones current times in different timezones
+    fmt = '%I:%M %p'
+    now = datetime.now(pytz.utc)
 
-    pst = pytz.timezone('America/Los_Angeles')
-    cst = pytz.timezone('America/Chicago')
-    eastern = pytz.timezone('America/New_York')
-    chile_summer = pytz.timezone('America/Santiago')
+    pst_tz = pytz.timezone('America/Los_Angeles')
+    cst_tz = pytz.timezone('America/Chicago')
+    est_tz = pytz.timezone('America/New_York')
+    chile_tz = pytz.timezone('America/Santiago')
 
+    pst_time = now.astimezone(pst_tz)
+    cst_time = now.astimezone(cst_tz)
+    est_time = now.astimezone(est_tz)
+    chile_time = now.astimezone(chile_tz)
+    # now.strftime('%H:%M %m %d')   
 
-
-    await ctx.send('times')
+    await ctx.send('Current times are:\n'+
+                    f'**Pacific**:\t {pst_time.strftime(fmt)}\n'+
+                    f'**Central**:\t{cst_time.strftime(fmt)}\n'+
+                    f'**Eastern**:   {est_time.strftime(fmt)}\n'+
+                    f'**Chile**:\t\t{chile_time.strftime(fmt)}'
+                    )
 
 bot.run(TOKEN)
