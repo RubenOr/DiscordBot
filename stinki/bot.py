@@ -35,7 +35,7 @@ async def quit(ctx):
     try:
         await bot.close()
     except RuntimeError:
-        print 
+        print('close success')
 
 @bot.command()
 async def connect(ctx):
