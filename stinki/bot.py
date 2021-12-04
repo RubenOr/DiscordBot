@@ -32,7 +32,10 @@ async def on_ready():
 @bot.command()
 async def quit(ctx):
     print('closing connection')
-    await bot.close()
+    try:
+        await bot.close()
+    except RuntimeError:
+        print 
 
 @bot.command()
 async def connect(ctx):
