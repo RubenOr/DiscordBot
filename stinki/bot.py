@@ -1,16 +1,17 @@
 import os
-import discord
 import random
-import pytz
-
 from datetime import datetime, time
+
+import discord
+import pytz
+import redis
 from discord import channel
-from dotenv import load_dotenv
 from discord.ext import commands
 
+redis_server = redis.Redis()
+DISCORD_TOKEN = str(redis_server.get('DISCORD_TOKEN').decode('utf-8'))
 
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+#TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.default()
 # see guild members and their status
 intents.members = True
@@ -105,4 +106,4 @@ async def time(ctx):
                     f'**Chile**:\t\t{chile_time.strftime(fmt)}'
                     )
 
-bot.run(TOKEN)
+bot.run(DISCORD_TOKEN)
