@@ -5,13 +5,14 @@ from datetime import datetime, time
 import discord
 import pytz
 import redis
+
 from discord import channel
 from discord.ext import commands
 
 redis_server = redis.Redis()
 DISCORD_TOKEN = str(redis_server.get('DISCORD_TOKEN').decode('utf-8'))
+# DISCORD_CHANNEL = str(redis_server.get('DISCORD_CHAN').decode('utf-8'))
 
-#TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.default()
 # see guild members and their status
 intents.members = True
@@ -19,14 +20,17 @@ intents.presences = True
 
 bot = commands.Bot(command_prefix="!",intents=intents)
 
+def channel_update():
+    return int(redis_server.get('DISCORD_BOTCHAN').decode('utf-8'))
+
 @bot.event
 async def on_ready():
     txt_channel = bot.get_channel(910997848986882129)
     # send message on channel join
     print(f'{bot.user} has connected to {bot.guilds[0].name}!')
 
-    time = datetime.now().strftime('%I:%M')
-    init = f'stinki started at {time}'
+    time = datetime.now(pytz.utc).astimezone(pytz.timezone('America/Chicago'))
+    init = f'stinki started at {time.strftime("%I:%M %p")} CST'
 
     await txt_channel.send(init)
 
@@ -37,13 +41,28 @@ async def quit(ctx):
         await bot.close()
     except RuntimeError:
         print('close success')
+    print('close success')
+
 
 @bot.command()
-async def connect(ctx):
+async def link(ctx):
     # try to assign channel to send messages to
-    
+    if redis_server.set('DISCORD_BOTCHAN', str(ctx.channel.id), nx=True) == 1:
+        print(f'set bot channel to id: {ctx.channel.id} name: {ctx.channel.name}')
+        bot_channel = bot.get_channel(channel_update())
+        await bot_channel.send('This is now the assigned bot channel!')
+    else:
+        await ctx.send('Bot channel is already linked!')
 
-    print(ctx.channel.id)
+    return None
+
+@bot.command()
+async def unlink(ctx):
+    # unassign linked channel
+    if redis_server.delete('DISCORD_BOTCHAN') == 1:
+        await ctx.send('Channel has been unlinked.')
+    else:
+        await ctx.send('Channel has not been linked.')
     return None
 
 @bot.command()        
