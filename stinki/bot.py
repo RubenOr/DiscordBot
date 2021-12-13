@@ -6,7 +6,6 @@ import discord
 import pytz
 import redis
 
-from discord import channel
 from discord.ext import commands
 
 redis_server = redis.Redis()
@@ -47,7 +46,7 @@ async def on_ready():
 
 @bot.command()
 async def quit(ctx):
-    if ctx.channel == channel_update():
+    if ctx.channel == channel_update() and 'bot handler' in str(ctx.author.roles):
         print('closing connection')
         try:
             await bot.close()
@@ -55,36 +54,33 @@ async def quit(ctx):
             print('close success')
         print('close success')
 
-
 @bot.command()
 async def link(ctx):
     # bot manager role only 
-
+    if 'bot handler' in str(ctx.author.roles):
+        # try to assign channel to send messages to
+        if redis_server.set('DISCORD_BOTCHAN', str(ctx.channel.id), nx=True) == 1:
+            print(f'set bot channel to id: {ctx.channel.id} name: {ctx.channel.name}')
+            bot_channel = channel_update()
+            await bot_channel.send('This is now the assigned bot channel!')
+        else:
+            await ctx.send(f'Bot channel is already linked to {channel_update().mention} !')
     
-    # try to assign channel to send messages to
-    if redis_server.set('DISCORD_BOTCHAN', str(ctx.channel.id), nx=True) == 1:
-        print(f'set bot channel to id: {ctx.channel.id} name: {ctx.channel.name}')
-        bot_channel = channel_update()
-        await bot_channel.send('This is now the assigned bot channel!')
-    else:
-        await ctx.send(f'Bot channel is already linked to {channel_update().mention} !')
 
-    return None
 
 @bot.command()
 async def unlink(ctx):
     # bot manager role only 
-
-    if ctx.channel == channel_update():
-        # unassign linked channel
-        if redis_server.delete('DISCORD_BOTCHAN') == 1:
-            await ctx.send('Channel has been unlinked.')
+    if 'bot handler' in str(ctx.author.roles):
+        if ctx.channel == channel_update():
+            # unassign linked channel
+            if redis_server.delete('DISCORD_BOTCHAN') == 1:
+                await ctx.send('Channel has been unlinked.')
+            else:
+                await ctx.send('Channel has not been linked.')
         else:
-            await ctx.send('Channel has not been linked.')
-    else:
-        await ctx.send('Stinki Bot is not linked to this channel.')
+            await ctx.send('Stinki Bot is not linked to this channel.')
 
-    return None
 
 @bot.command()        
 async def decide(ctx, *choices: str):
@@ -100,7 +96,7 @@ async def decide(ctx, *choices: str):
                         'I think you guys should choose',
                         'stinki says',
                         ]
-            await ctx.reply(f'{random.choice(openings)} {random.choice(options)}')
+            await ctx.reply(f'{random.choice(openings)} **{random.choice(options)}**')
 
 @bot.command()
 async def whostinki(ctx):
