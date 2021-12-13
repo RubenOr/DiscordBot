@@ -19,11 +19,10 @@ intents.presences = True
 
 bot = commands.Bot(command_prefix="!",intents=intents)
 
-def channel_update():
+def channel_update(guild:discord.Guild):
     try:
-        bot_channel = bot.get_channel(int(redis_server.get('DISCORD_BOTCHAN').decode('utf-8')))
+        bot_channel = bot.get_channel(int(redis_server.get(f'{str(guild)}_BOTCHAN').decode('utf-8')))
     except AttributeError:
-        print('DNE')
         bot_channel = None
 
     return bot_channel
@@ -34,19 +33,9 @@ async def on_ready():
     for guild in bot.guilds:
         print(f'{guild.id}:\t{guild.name}\n')
 
-    txt_channel = channel_update()
-
-    time = datetime.now(pytz.utc).astimezone(pytz.timezone('America/Chicago'))
-    init = f'stinki started at {time.strftime("%I:%M %p")} CST'
-
-    if txt_channel == None:
-        print('Bot has not been linked')
-    else:
-        await txt_channel.send(init)
-
 @bot.command()
 async def quit(ctx):
-    if ctx.channel == channel_update() and 'bot handler' in str(ctx.author.roles):
+    if ctx.channel == channel_update(ctx.guild) and 'bot handler' in str(ctx.author.roles):
         print('closing connection')
         try:
             await bot.close()
@@ -59,32 +48,32 @@ async def link(ctx):
     # bot manager role only 
     if 'bot handler' in str(ctx.author.roles):
         # try to assign channel to send messages to
-        if redis_server.set('DISCORD_BOTCHAN', str(ctx.channel.id), nx=True) == 1:
-            print(f'set bot channel to id: {ctx.channel.id} name: {ctx.channel.name}')
-            bot_channel = channel_update()
+        if redis_server.set(f'{str(ctx.guild)}_BOTCHAN', str(ctx.channel.id), nx=True) == 1:
+            print(f'set {str(ctx.guild)} bot channel to id: {ctx.channel.id} name: {ctx.channel.name}')
+            bot_channel = channel_update(ctx.guild)
             await bot_channel.send('This is now the assigned bot channel!')
         else:
-            await ctx.send(f'Bot channel is already linked to {channel_update().mention} !')
-    
-
+            if ctx.channel == channel_update(ctx.guild):
+                await ctx.reply('Bot is already linked to this channel!')
+            else:
+                await ctx.reply(f'Bot channel is already linked to {channel_update(ctx.guild).mention} !')
 
 @bot.command()
 async def unlink(ctx):
     # bot manager role only 
     if 'bot handler' in str(ctx.author.roles):
-        if ctx.channel == channel_update():
+        if ctx.channel == channel_update(ctx.guild):
             # unassign linked channel
-            if redis_server.delete('DISCORD_BOTCHAN') == 1:
-                await ctx.send('Channel has been unlinked.')
+            if redis_server.delete(f'{str(ctx.guild)}_BOTCHAN') == 1:
+                await ctx.reply('Channel has been unlinked.')
             else:
-                await ctx.send('Channel has not been linked.')
+                await ctx.reply('Channel has not been linked.')
         else:
-            await ctx.send('Stinki Bot is not linked to this channel.')
-
+            await ctx.reply('Stinki Bot is not linked to this channel.')
 
 @bot.command()        
 async def decide(ctx, *choices: str):
-    if ctx.channel == channel_update():
+    if ctx.channel == channel_update(ctx.guild):
         # decides between given choices separated by comma(',') delimiter
         options = ' '.join([''.join(opt) for opt in choices]).split(',')
 
@@ -101,7 +90,7 @@ async def decide(ctx, *choices: str):
 @bot.command()
 async def whostinki(ctx):
     # gets members of guild and chooses one at random excluding bot(s). if all members are offline return "No one is stinki" message
-    if ctx.channel == channel_update():
+    if ctx.channel == channel_update(ctx.guild):
         members = ctx.guild.members
 
         stinki = random.choice(members)
@@ -118,11 +107,11 @@ async def whostinki(ctx):
         else: 
             msg = f'{stinki.mention} is stinki'
 
-        await channel_update().send(ctx.author.mention +': ' + msg)
+        await channel_update(ctx.guild).send(msg)
 
 @bot.command()
 async def time(ctx):
-    if ctx.channel == channel_update():
+    if ctx.channel == channel_update(ctx.guild):
         # show everyones current times in different timezones
         fmt = '%I:%M %p'
         now = datetime.now(pytz.utc)
@@ -137,7 +126,7 @@ async def time(ctx):
         est_time = now.astimezone(est_tz)
         chile_time = now.astimezone(chile_tz)
 
-        await channel_update().send('Current times are:\n'+
+        await channel_update(ctx.guild).send('Current times are:\n'+
                         f'**Pacific**:\t {pst_time.strftime(fmt)}\n'+
                         f'**Central**:\t{cst_time.strftime(fmt)}\n'+
                         f'**Eastern**:   {est_time.strftime(fmt)}\n'+
