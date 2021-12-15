@@ -18,6 +18,7 @@ intents.members = True
 intents.presences = True
 
 bot = commands.Bot(command_prefix="!",intents=intents)
+bot.remove_command('help')
 
 def channel_update(guild:discord.Guild):
     try:
@@ -33,6 +34,35 @@ async def on_ready():
     for guild in bot.guilds:
         print(f'{guild.id}:\t{guild.name}\n')
 
+
+
+@bot.group(invoke_without_command=True,)
+async def help(ctx):
+    if ctx.channel == channel_update(ctx.guild):
+        # primitive version of help command 
+        emb = discord.Embed(title='Help', description="Use `!help <command>` for information about a specific command", color=discord.Colour.gold())
+        emb.add_field(name="All Commands", value='`time`\n`decide`\n`whostinki`')
+        await ctx.reply(embed=emb)
+
+@help.command()
+async def time(ctx):
+    emb = discord.Embed(title='Time', description="Shows everyone's local time.", color=discord.Colour.gold())
+    emb.add_field(name='**Usage**', value='`!time`')
+    await ctx.reply(embed=emb)
+
+@help.command()
+async def decide(ctx):
+    emb = discord.Embed(title='Time', description="Bot chooses at random from any number of choices given. (Choices must be separated by a comma `,`  )", color=discord.Colour.gold())
+    emb.add_field(name='**Usage**', value='!decide <option 1> `,` <option 2> `,` . . . `,` <option n>')
+    await ctx.reply(embed=emb)
+
+@help.command()
+async def whostinki(ctx):
+    emb = discord.Embed(title='Time', description="Bot chooses someone at random that is stinki.", color=discord.Colour.gold())
+    emb.add_field(name='**Usage**', value='`!whostinki`')
+    await ctx.reply(embed=emb)
+
+
 @bot.command()
 async def quit(ctx):
     if ctx.channel == channel_update(ctx.guild) and 'bot handler' in str(ctx.author.roles):
@@ -45,7 +75,10 @@ async def quit(ctx):
 
 @bot.command()
 async def link(ctx):
-    # bot manager role only 
+    """
+    [ADMIN USE ONLY]
+    Assigns channel to use for Bot communication.
+    """
     if 'bot handler' in str(ctx.author.roles):
         # try to assign channel to send messages to
         if redis_server.set(f'{str(ctx.guild)}_BOTCHAN', str(ctx.channel.id), nx=True) == 1:
@@ -60,7 +93,10 @@ async def link(ctx):
 
 @bot.command()
 async def unlink(ctx):
-    # bot manager role only 
+    """ 
+    [ADMIN USE ONLY]
+    Unassigns Bot communication channel.
+    """
     if 'bot handler' in str(ctx.author.roles):
         if ctx.channel == channel_update(ctx.guild):
             # unassign linked channel
@@ -73,6 +109,9 @@ async def unlink(ctx):
 
 @bot.command()        
 async def decide(ctx, *choices: str):
+    """
+    Bot chooses at random from any number of choices given.
+    """
     if ctx.channel == channel_update(ctx.guild):
         # decides between given choices separated by comma(',') delimiter
         options = ' '.join([''.join(opt) for opt in choices]).split(',')
@@ -89,7 +128,9 @@ async def decide(ctx, *choices: str):
 
 @bot.command()
 async def whostinki(ctx):
-    # gets members of guild and chooses one at random excluding bot(s). if all members are offline return "No one is stinki" message
+    """ 
+    Bot chooses someone at random that is stinki.
+    """
     if ctx.channel == channel_update(ctx.guild):
         members = ctx.guild.members
 
@@ -111,6 +152,9 @@ async def whostinki(ctx):
 
 @bot.command()
 async def time(ctx):
+    """
+    Shows everyone's local time.
+    """
     if ctx.channel == channel_update(ctx.guild):
         # show everyones current times in different timezones
         fmt = '%I:%M %p'
