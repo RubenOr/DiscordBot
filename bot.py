@@ -32,7 +32,7 @@ def channel_update(guild:discord.Guild):
 async def on_ready():
     print(f'{bot.user} is connected to:')
     for guild in bot.guilds:
-        print(f'{guild.id}:\t{guild.name}\n')
+        print(f'{guild.id}:\t{guild.name}')
 
 
 
@@ -52,14 +52,20 @@ async def time(ctx):
 
 @help.command()
 async def decide(ctx):
-    emb = discord.Embed(title='Time', description="Bot chooses at random from any number of choices given. (Choices must be separated by a comma `,`  )", color=discord.Colour.gold())
+    emb = discord.Embed(title='Decide', description="Bot chooses at random from any number of choices given. (Choices must be separated by a comma `,`  )", color=discord.Colour.gold())
     emb.add_field(name='**Usage**', value='!decide <option 1> `,` <option 2> `,` . . . `,` <option n>')
     await ctx.reply(embed=emb)
 
 @help.command()
 async def whostinki(ctx):
-    emb = discord.Embed(title='Time', description="Bot chooses someone at random that is stinki.", color=discord.Colour.gold())
+    emb = discord.Embed(title='whostinki', description="Bot chooses someone at random that is stinki.", color=discord.Colour.gold())
     emb.add_field(name='**Usage**', value='`!whostinki`')
+    await ctx.reply(embed=emb)
+
+@help.command()
+async def stinkiboard(ctx):
+    emb = discord.Embed(title='stinkiboard', description="Shows a leaderboard of who has been the most stinki.", color=discord.Colour.gold())
+    emb.add_field(name='**Usage**', value='`!stinkiboard`')
     await ctx.reply(embed=emb)
 
 
@@ -146,9 +152,40 @@ async def whostinki(ctx):
         if count == 20:
             msg = 'No one is stinki!'    
         else: 
+            redis_server.incr(f"{stinki.id}_{ctx.guild}_count",1)
             msg = f'{stinki.mention} is stinki'
 
         await channel_update(ctx.guild).send(msg)
+
+@bot.command()
+async def stinkiboard(ctx):
+    """
+    Shows a leaderboard of who has been the most stinki.
+    """
+    if ctx.channel == channel_update(ctx.guild):
+        members = ctx.guild.members
+        board = []
+        for m in members:
+            if not m.bot:
+                count = redis_server.get(f"{m.id}_{ctx.guild}_count")
+                if count == None:
+                    count = 0
+                else:
+                    count = int(count.decode('utf-8'))
+                
+                if m.nick==None:
+                    board.append(tuple([m.name,count]))
+                else:
+                    board.append(tuple([m.nick,count]))
+        
+        board.sort(key= lambda x:x[1], reverse=True)
+
+        msg = "|%32s | %s\n" % ('**Name**', '**Stinki Count**')
+        msg += '|%30s | %5d\n' % (board[0][0],board[0][1])
+        for member in board[1:]:
+            msg += '|%28s | %5d\n' % (member[0],member[1])
+            
+        await ctx.send(msg)
 
 @bot.command()
 async def time(ctx):
@@ -171,10 +208,38 @@ async def time(ctx):
         chile_time = now.astimezone(chile_tz)
 
         await channel_update(ctx.guild).send('Current times are:\n'+
-                        f'**Pacific**:\t {pst_time.strftime(fmt)}\n'+
-                        f'**Central**:\t{cst_time.strftime(fmt)}\n'+
-                        f'**Eastern**:   {est_time.strftime(fmt)}\n'+
-                        f'**Chile**:\t\t{chile_time.strftime(fmt)}'
+                        '%-20s %s\n' % ("**Pacific**:",pst_time.strftime(fmt))+
+                        '%-19s %s\n' % ("**Central**:",cst_time.strftime(fmt))+
+                        '%-18s %s\n' % ("**Eastern**:",est_time.strftime(fmt))+
+                        '%-21s %s' % ("**Chile**:",chile_time.strftime(fmt))
                         )
+
+@bot.command(aliases=['8ball'])
+async def _8ball(ctx):
+    ball = [
+        ("As I see it, yes"),
+        ("It is certain"),
+        ("It is decidedly so"),
+        ("Most likely"),
+        ("Outlook good"),
+        ("Signs point to yes"),
+        ("Without a doubt"),
+        ("Yes"),
+        ("Yes  definitely"),
+        ("You may rely on it"),
+        ("Reply hazy, try again"),
+        ("Ask again later"),
+        ("Better not tell you now"),
+        ("Cannot predict now"),
+        ("Concentrate and ask again"),
+        ("Don't count on it"),
+        ("My reply is no"),
+        ("My sources say no"),
+        ("Outlook not so good"),
+        ("Very doubtful"),
+    ]
+    if ctx.channel == channel_update(ctx.guild):
+        await ctx.reply(random.choice(ball))
+
 
 bot.run(DISCORD_TOKEN)
