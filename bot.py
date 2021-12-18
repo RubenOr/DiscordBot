@@ -180,11 +180,11 @@ async def stinkiboard(ctx):
         
         board.sort(key= lambda x:x[1], reverse=True)
 
-        msg = "|%32s | %s\n" % ('**Name**', '**Stinki Count**')
-        msg += '|%30s | %5d\n' % (board[0][0],board[0][1])
+        msg = ">>>%40s | %s\n" % ('**Name**', '**Stinki Count**')
+        msg += '%40s | %5d\n' % (board[0][0],board[0][1])
         for member in board[1:]:
-            msg += '|%28s | %5d\n' % (member[0],member[1])
-            
+            msg += '%40s | %5d\n' % (member[0],member[1])
+
         await ctx.send(msg)
 
 @bot.command()
