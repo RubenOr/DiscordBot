@@ -148,12 +148,13 @@ async def whostinki(ctx):
 
         stinki = random.choice(members)
         count = 0
-
+        stinki1 = stinki.name
         # count is to prevent infinite loop. stinki will never ping offline members
         # if member is bot or offline reroll pick
         while (stinki.bot or stinki.raw_status == 'offline' or str(stinki.id) =='705268624608198677') and count < 20:
             
             stinki = random.choice(members)
+            stinki1 += f' {stinki.name}'
             count+=1
 
         if count == 20:
