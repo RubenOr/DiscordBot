@@ -68,6 +68,12 @@ async def stinkiboard(ctx):
     emb.add_field(name='**Usage**', value='`!stinkiboard`')
     await ctx.reply(embed=emb)
 
+@help.command()
+async def _8ball(ctx):
+    emb = discord.Embed(title='stinkiboard', description="Shows a leaderboard of who has been the most stinki.", color=discord.Colour.gold())
+    emb.add_field(name='**Usage**', value='`!stinkiboard`')
+    await ctx.reply(embed=emb)
+
 
 @bot.command()
 async def quit(ctx):
@@ -145,7 +151,8 @@ async def whostinki(ctx):
 
         # count is to prevent infinite loop. stinki will never ping offline members
         # if member is bot or offline reroll pick
-        while (stinki.bot or stinki.raw_status == 'offline') and count < 20:
+        while (stinki.bot or stinki.raw_status == 'offline' or str(stinki.id) =='705268624608198677') and count < 20:
+            
             stinki = random.choice(members)
             count+=1
 
